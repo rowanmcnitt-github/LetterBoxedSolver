@@ -15,7 +15,7 @@ function preload() {
   splitWords = loadStrings("Complete_Dictionary.txt");
 }
 function setup() {
-  createCanvas(600, 800);
+  createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
   textAlign(CENTER,CENTER);
   //97-122 ascii
@@ -30,7 +30,7 @@ function draw()
   textSize(15);
   let desiredRotation = -floor(userInput.length / 3) * (PI/2);
   curRotation = curRotation + (desiredRotation - curRotation) / 4.4;
-  let rectSize = width / 1.8;
+  let rectSize = 500;
   //
   //
   // text(desiredRotation, width / 2, height / 2 - 40);
@@ -45,8 +45,8 @@ function draw()
     text("Press Enter To Solve", width / 2, height / 2);
     if(bestSolution != "")
       {
-        text("Best Solution", width / 2, 50);
-        text(bestSolution, width / 2, 100);
+        text("Best Solution", width / 2, height / 2 - rectSize);
+        text(bestSolution, width / 2, height / 2 - rectSize + 60);
       }
   }
   noFill();
