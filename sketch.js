@@ -26,7 +26,7 @@ function setup() {
 
 function draw() 
 {
-  background(25);
+  background(250);
   textSize(15);
   let desiredRotation = -floor(userInput.length / 3) * (PI/2);
   curRotation = curRotation + (desiredRotation - curRotation) / 4.4;
