@@ -1,7 +1,8 @@
+//TODO: bug where changing input leads to no more solutions ?? 
 let letters = [];
 let splitWords = [];
 var alphMap;
-var bestDepth = 5;
+var bestDepth = 10;
 //
 let camera_x = 0;
 let camera_y = 0;
@@ -10,57 +11,127 @@ let userInput = [];
 //
 let curRotation = 0;
 //
-let bestSolution = "";
-function preload() {
+let allSolutions = [];
+let unjoinedSolutions = [];
+//
+let bestSolution = -1;
+//a
+let solutionIndex = 0;
+let useFont;
+let bgColor;
+let ffColor;
+let altColor;
+let altColor2;
+//
+let currentLine = -1;
+let drawnLines = [];
+//
+let stepNumber = 0;
+function preload() 
+{
   splitWords = loadStrings("Complete_Dictionary.txt");
+  useFont = loadFont("BebasKai.otf");
 }
-function setup() {
+function setup()
+{
+  textFont(useFont);
+  bgColor  = color('#3D5467');
+  ffColor  = color('#F1EDEE');
+  altColor = color('#DB5461');
+  altColor2 = color('#8AA29E')
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
   textAlign(CENTER,CENTER);
-  //97-122 ascii
+  //  97-122 ascii
   alphMap = new Map();
   //
-  // solve();
 }
 
 function draw() 
 {
-  background(25);
-  textSize(15);
+  background(bgColor);
+  let letterPadding = 50;
+  textSize(41);
   let desiredRotation = -floor(userInput.length / 3) * (PI/2);
-  curRotation = curRotation + (desiredRotation - curRotation) / 4.4;
-  let rectSize = 500;
+  curRotation = curRotation + (desiredRotation - curRotation) / 6.4;
+  let rectSize = 400;
   //
   //
   // text(desiredRotation, width / 2, height / 2 - 40);
   // text(userInput, width / 2, height / 2);
   //
   noStroke();
-  fill(255);
-  textSize(25);
+  fill(ffColor);
   //
   if(userInput.length == 12)
   {
-    text("Press Enter To Solve", width / 2, height / 2);
-    if(bestSolution != "")
+    //manually map out screen proportions
+    //draw the current solution
+    let numSteps = 1000;
+    // print(unjoinedSolutions[solutionIndex]);
+    if(bestSolution != -1)
       {
-        text("Best Solution", width / 2, height / 2 - rectSize);
-        text(bestSolution, width / 2, height / 2 - rectSize + 60);
+    prevLetter = unjoinedSolutions[solutionIndex].charAt(0);
+    for(let i = 1; i < unjoinedSolutions[solutionIndex].length; i++)
+      {
+        let curLetter = unjoinedSolutions[solutionIndex].charAt(i);
+        let tRotation = floor(userInput.indexOf(curLetter)) * (PI/2);
+        // let letX = ((((0 - rectSize) / 2)) +  letterPadding) + (letSpace * y);
+      // let newX = (rectSize / 2) * -floor(cos(curRotation));
+      // let newY = (rectSize / 2) * floor(sin(curRotation));
+        let letterSpacing = (rectSize - (2* letterPadding)) / 2;
+        let currentX =  width / 2;//((((width - rectSize) / 2)) +  letterPadding) + (letterSpacing * floor(userInput.indexOf(curLetter) / 4));
+        let currentY = height /2;
+        
+        currentX += (rectSize / 2) * -floor(cos(tRotation));
+        currentY += (rectSize / 2) * floor(sin(tRotation));
+        stroke(altColor);
+        // ellipse(currentX, currentY, 30, 30);
+      }
+      }
+    // for(let i = 0; i < allSolutions[solutionIndex].leng)
+    //i have x -> x2 i want to reach in n amount of steps
+    // x2-x / n
+    //
+    if(bestSolution == -1)
+      {
+        text("PRESS ENTER TO SOLVE", width / 2 + 1 * sin(millis() / 240), height / 2+ 1 * cos(millis() / 240));
+        stroke(altColor2);
+        line(width /2 - 120, height/2 + 30,width /2 + 120, height/2 + 30);
+      }
+    noStroke();
+    if(bestSolution != -1)
+      {
+        if(solutionIndex == bestSolution)
+          {
+            text("Best Solution", width / 2, height / 2 - rectSize + 20);
+          }
+        else
+        {
+          text("Alternative Solution", width / 2, height / 2 - rectSize + 20);
+        }
+        
+        text(allSolutions[solutionIndex], width / 2, height / 2 - rectSize + 72);
+        textSize(18);
+        textStyle(ITALIC);
+        fill(altColor2);
+        text("use left and right arrow keys for other solutions", width / 2,height / 2 - rectSize + 100);
+        fill(ffColor);
+        textStyle(NORMAL);
       }
   }
   noFill();
-  stroke(255);
+  stroke(ffColor);
   strokeWeight(5);
-  textSize(25);
-  let letterPadding = 40;
+  textSize(41);
   //
   push();
   translate(width / 2, height / 2);
-  rotate(curRotation);
+  let amp = .01;
+  rotate(curRotation + amp*sin(millis() / 300));
   //
   rect(0, 0, rectSize, rectSize, 8);
-  stroke(80);
+  stroke(altColor);
   rect(0, 0, rectSize / 1.1, rectSize / 1.1, 8);
   //
   //
@@ -70,6 +141,7 @@ function draw()
       push()
       //translate(width / 2, height / 2);
       rotate(curRotation);
+       // let letX = ((((0 - rectSize) / 2)) +  letterPadding) + (letSpace * y);
       // let newX = (rectSize / 2) * -floor(cos(curRotation));
       // let newY = (rectSize / 2) * floor(sin(curRotation));
       translate(0, -rectSize /2 - letterPadding / 2);
@@ -83,7 +155,7 @@ function draw()
               let letY = 0;
               noStroke();
               fill(255);
-              text(currentLetter, letX, letY);
+              text(currentLetter.toUpperCase(), letX, letY);
             }
         }
       pop();
@@ -113,7 +185,18 @@ function keyPressed()
       if(userInput.length > 0)
         {
           userInput.splice(userInput.length-1,1);
+          bestSolution = -1;
+          
         }
+    }
+  if(keyCode == LEFT_ARROW)
+    {
+      print("Attempting left");
+      if(solutionIndex > 0){solutionIndex--;}else{solutionIndex = allSolutions.length -1;}
+    }
+  if(keyCode == RIGHT_ARROW)
+    {
+      if(solutionIndex < allSolutions.length-1){solutionIndex++;}else{solutionIndex = 0;}
     }
 }
 function validWord(curWord, validLetters) {
@@ -125,6 +208,7 @@ function validWord(curWord, validLetters) {
   return true;
 }
 function solve() {
+  allSolutions = [];
   print("Attempting  solve...");
   // arrA = join(split(inputSideA.value(), ","), "");
   // arrB = join(split(inputSideB.value(), ","), "");
@@ -135,6 +219,7 @@ function solve() {
   // neededLetters = split(neededLetters, "");
   //
   //neededLetters = split("a,b,c,d,e,f,g,h,i,j,k,l", ',');
+  //bug with 0 solutions
   neededLetters = userInput;
   //
   for(let i = 0;i < splitWords.length; i++)
@@ -157,7 +242,8 @@ function getML(curWord, curLetters) {
   arrayCopy(curLetters, retLetters);
   for (let i = 0; i < curWord.length; i++) {
     let curLetter = curWord.substring(i, i + 1);
-    if (retLetters.includes(curLetter)) {
+    if (retLetters.includes(curLetter)) 
+    {
       retLetters.splice(retLetters.indexOf(curLetter), 1);
     }
   }
@@ -166,11 +252,8 @@ function getML(curWord, curLetters) {
 function findSolution(neededLetters) {
   // print(neededLetters);
   let finalPaths = [];
-  for (
-    let i = 0;
-    i < 12;
-    i++ //change 1 to twelve, only looking at A for now
-  ) {
+  for (let i = 0;i < 12;i++)
+  {
     let startLetter = neededLetters[i].charAt(0);
     let relList = getFirstWords(neededLetters[i], neededLetters); //alphMap.get(startLetter);
     let exploredList = [];
@@ -237,7 +320,7 @@ function findSolution(neededLetters) {
       explNode = explNode.getParent();
       pathIter++;
     }
-    append(finalPaths, curPath.reverse());
+    if(curPath.length > 0){append(finalPaths, curPath.reverse());}
   }
   let smallestPath = 100;
   let smallestIter = -1;
@@ -247,10 +330,14 @@ function findSolution(neededLetters) {
       smallestPath = finalPaths[i].length;
       smallestIter = i;
     }
+    append(allSolutions, join(finalPaths[i], " => ").toUpperCase());
+    append(unjoinedSolutions, join(finalPaths[i], ''));
   }
   //print("The smallest path of length: " + smallestPath + " is:");
-  bestSolution = join(finalPaths[smallestIter], ", ");
-  print(finalPaths[smallestIter]);
+  //bestSolution = join(finalPaths[smallestIter], ", ").toUpperCase();
+  bestSolution = smallestIter;
+  solutionIndex = bestSolution;
+  print("Found " + allSolutions.length + " solutions");// +  finalPaths[smallestIter]);
 }
 function getFirstWords(firstLetter, validLetters) {
   let currentWord = firstLetter;
@@ -289,7 +376,8 @@ function getValidWords(currentWord, validLetters) {
   var curSide;
   let startWordList = alphMap.get(currentLetter);
   let validWords = [];
-  //print("from current word: " + currentWord + "valid other words are: " + startWordList);
+  // print("from current word: " + currentWord + "valid other words are: " + startWordList + " fo current letter: " + currentLetter);
+  if(startWordList == null){return null;}
   for (let i = 0; i < startWordList.length; i++) {
     let valid = true;
     curSide = floor(validLetters.indexOf(sideLetter) / 3);
